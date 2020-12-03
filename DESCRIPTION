@@ -1,0 +1,16 @@
+Package: shinySlab
+Type: Package
+Title: Shiny Authentication with SoccerLab
+Version: 0.1.0
+Author: Tim Govers
+Maintainer: Soccerlab <info@soccerlab.com>
+Description: Add Soccerlab authentication on top of Shiny Apps.
+License: MIT LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.1
+Imports:
+	httr (>= 1.4.2),
+	jsonlite (>= 1.7.1),
+	shiny (>= 1.5.0),
+	shinyjs (>= 2.0.0)
