@@ -38,9 +38,9 @@ printVerbose <- function(txt, ...) {
 #'
 #' @export
 #' @import shiny
-shinySlabApp <- function(ui, server, config_file = NULL,roles=NULL,  ...) {
+shinySlabApp <- function(ui, server, config_file = NULL,roles=NULL, verboseFlag=getOption("slab_verbose"),  ...) {
   disable <- getOption("slab_disable")
-  pkg.globals$verboseEnabled <- getOption("slab_verbose")
+  pkg.globals$verboseEnabled <- verboseFlag
 
   if (!is.null(disable) && disable) {
     warning('shinySlab:: Soccerlab Authentication package is disabled: to enable run options(slab_disable = NULL)')
