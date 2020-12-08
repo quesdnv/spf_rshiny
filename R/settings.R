@@ -85,7 +85,7 @@ jsCodeTemplate <- '
     Shiny.onInputChange("slabToken", token);
    }).catch((e)=>{
    Shiny.onInputChange("slabToken", null);
-   location.replace("%s"+encodeUriComponent(location.href))
+   location.replace("%s"+encodeURIComponent(location.href))
    })
   }
 '
