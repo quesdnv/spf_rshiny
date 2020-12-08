@@ -23,6 +23,7 @@ printVerbose <- function(txt, ...) {
 #' @param server an ordinary server object to create shiny apps.
 #' @param config_file path to JSON configuration file.
 #' @param roles atomic vector (character) of allowed roles, default NULL (= allow all).
+#' @param verboseFlag TRUE/FALSE will show all debug information (prints) AND verbose UI.
 #' @param ... Other arguments as passed on to [shiny::shinyApp()].
 #'
 #' @details
@@ -37,7 +38,7 @@ printVerbose <- function(txt, ...) {
 #'   disable soccerlab temporarily.
 #'
 #' @export
-#' @import shiny
+#' @importFrom shiny shinyApp
 shinySlabApp <- function(ui, server, config_file = NULL,roles=NULL, verboseFlag=getOption("slab_verbose"),  ...) {
   disable <- getOption("slab_disable")
   pkg.globals$verboseEnabled <- verboseFlag
@@ -70,6 +71,10 @@ shinySlabApp <- function(ui, server, config_file = NULL,roles=NULL, verboseFlag=
 #'
 #'
 #' @import shinyjs
+#' @importFrom shiny tagList
+#' @importFrom shiny uiOutput
+#' @importFrom shiny p
+#' @importFrom shiny verbatimTextOutput
 slab_ui <- function(settings) {
 
   return(
@@ -91,6 +96,13 @@ slab_ui <- function(settings) {
 #' @param settings calculated settings object based on configuration json.
 #' @param ui `shiny.tag.list` user defined object/function to generate the user interface.
 #'
+#' @importFrom shiny reactiveVal
+#' @importFrom shiny observe
+#' @importFrom shiny observeEvent
+#' @importFrom shiny renderText
+#' @importFrom shiny renderUI
+#' @importFrom shiny absolutePanel
+#' @importFrom shiny p
 slab_server <- function(server,settings,ui) {
 
   function(input, output, session) {

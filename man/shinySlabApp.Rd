@@ -4,7 +4,14 @@
 \alias{shinySlabApp}
 \title{Create a Shiny app object with Soccerlab Authentication}
 \usage{
-shinySlabApp(ui, server, config_file = NULL, roles = NULL, ...)
+shinySlabApp(
+  ui,
+  server,
+  config_file = NULL,
+  roles = NULL,
+  verboseFlag = getOption("slab_verbose"),
+  ...
+)
 }
 \arguments{
 \item{ui}{an ordinary UI object to create shiny apps.}
@@ -14,6 +21,8 @@ shinySlabApp(ui, server, config_file = NULL, roles = NULL, ...)
 \item{config_file}{path to JSON configuration file.}
 
 \item{roles}{atomic vector (character) of allowed roles, default NULL (= allow all).}
+
+\item{verboseFlag}{TRUE/FALSE will show all debug information (prints) AND verbose UI.}
 
 \item{...}{Other arguments as passed on to [shiny::shinyApp()].}
 }

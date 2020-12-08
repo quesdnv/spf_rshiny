@@ -4,12 +4,14 @@
 \alias{getApiCall}
 \title{Call as Soccerlab api with credentials (sessionId)}
 \usage{
-getApiCall(url, sessionId)
+getApiCall(url, sessionId, raw = FALSE)
 }
 \arguments{
 \item{url}{`string` The api url to reach}
 
 \item{sessionId}{`string` The sessionId (available in session$userData$sessionId post login)}
+
+\item{raw}{`bool` defaults to FALSE (TRUE = non parsed json)}
 }
 \description{
 Call as Soccerlab api with credentials (sessionId)

@@ -24,7 +24,6 @@
 #' @seealso [`use_soccerlab`].
 #'
 #' @export
-#' @import jsonlite
 slab_find_config_file <- function() {
 
   config_file <- getOption("slab_config_file")
@@ -63,6 +62,7 @@ slab_find_config_file <- function() {
 #'
 #'
 #' @export
+#' @importFrom jsonlite toJSON
 use_soccerlab <- function(path = ".", file = "soccerlab.json", overwrite = FALSE) {
   f <- paste0(normalizePath(path), "/", file)
   if (file.exists(f) && !overwrite) {
@@ -102,6 +102,7 @@ myProfilePath <- "/APIRest/v0.2/system/authentication/user_accounts/my_user_prof
 #' @param roles `atomic vector (character)` Optional atomic (character) vector of allowed roles (UUID's)
 #'
 #' @return a `list` object representing the calculated settings based on config file
+#' @importFrom jsonlite fromJSON
 getSettings <- function(config_file,roles=NULL) {
 
   settings <- jsonlite::fromJSON(config_file)

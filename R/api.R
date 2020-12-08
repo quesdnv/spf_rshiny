@@ -6,7 +6,8 @@
 #' @param settings `list` The calculated settings object
 #'
 #' @return a `list` object containing authenticated session and user profile
-#' @import httr
+#' @importFrom httr GET
+#' @importFrom httr content
 verifyToken <- function(token,settings) {
 
   printVerbose(sprintf("Soccerlab verifying token: %s",token))
@@ -71,9 +72,13 @@ validateAuthorisation  <- function(user,settings) {
 #'
 #' @param url `string` The api url to reach
 #' @param sessionId `string` The sessionId (available in session$userData$sessionId post login)
+#' @param raw `bool` defaults to FALSE (TRUE = non parsed json)
 #'
 #' @export
-getApiCall <- function(url,sessionId) {
+#' @importFrom httr GET
+#' @importFrom httr content
+#' @importFrom httr config
+getApiCall <- function(url,sessionId,raw=FALSE) {
   # httr package will send cookies url encoded, to override this behavior, we'll use manual config
   printVerbose(sprintf("Soccerlab api request %s",url))
   r <- httr::GET(url, httr::config(cookie = paste0("ss-id=", sessionId)))
@@ -81,8 +86,15 @@ getApiCall <- function(url,sessionId) {
 
   status <- r$status_code
   printVerbose(sprintf("%s status: %s",url,toString(status)))
-  result <- httr::content(r, "parsed")
-  printVerbose(sprintf("%s parsed result",url))
+  result = NULL
+  if(raw) {
+    result <- httr::content(r, as="text")
+    printVerbose(sprintf("%s RAW result",url))
+  } else {
+    result <- httr::content(r, as="parsed")
+    printVerbose(sprintf("%s parsed result",url))
+  }
+
   printVerbose(result)
 
   if(status==200) {
@@ -92,5 +104,6 @@ getApiCall <- function(url,sessionId) {
   }
 
 }
+
 
 
