@@ -63,6 +63,7 @@ slab_find_config_file <- function() {
 #'
 #' @export
 #' @importFrom jsonlite toJSON
+#' @importFrom jsonlite unbox
 use_soccerlab <- function(path = ".", file = "soccerlab.json", overwrite = FALSE) {
   f <- paste0(normalizePath(path), "/", file)
   if (file.exists(f) && !overwrite) {
@@ -70,7 +71,7 @@ use_soccerlab <- function(path = ".", file = "soccerlab.json", overwrite = FALSE
   }
 
   json_list <- list(
-    domain = "yourdomain.soccerlab.com")
+    domain = jsonlite::unbox("yourdomain.soccerlab.com"))
   exportJSON <- jsonlite::toJSON(json_list)
   write(exportJSON, "soccerlab.json")
 }

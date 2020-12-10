@@ -72,7 +72,7 @@ validateAuthorisation  <- function(user,settings) {
 #'
 #' @param url `string` The api url to reach
 #' @param sessionId `string` The sessionId (available in session$userData$sessionId post login)
-#' @param raw `bool` defaults to FALSE (TRUE = non parsed json)
+#' @param raw `bool` defaults to FALSE (TRUE = non parsed json, FALSE = default httr content parsed)
 #'
 #' @export
 #' @importFrom httr GET

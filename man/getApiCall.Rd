@@ -11,7 +11,7 @@ getApiCall(url, sessionId, raw = FALSE)
 
 \item{sessionId}{`string` The sessionId (available in session$userData$sessionId post login)}
 
-\item{raw}{`bool` defaults to FALSE (TRUE = non parsed json)}
+\item{raw}{`bool` defaults to FALSE (TRUE = non parsed json, FALSE = default httr content parsed)}
 }
 \description{
 Call as Soccerlab api with credentials (sessionId)
