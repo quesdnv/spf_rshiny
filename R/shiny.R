@@ -110,8 +110,6 @@ slab_server <- function(server,settings,ui) {
     status <- shiny::reactiveVal(value = NULL)
     statusTxt <- shiny::reactiveVal(value = "Logging in")
 
-
-
     shiny::observe({
       state <- status()
       if(is.null(state)) {
@@ -125,6 +123,9 @@ slab_server <- function(server,settings,ui) {
     shiny::observeEvent(input$slabToken, {
       printVerbose(paste("Soccerlab token received",input$slabToken,sep = ":"))
       if (!is.null(input$slabToken)) {
+        if(input$slabToken=="FAILED") {
+          status('FAILED')
+        }
         printVerbose("verifying Soccerlab token")
         user <- verifyToken(input$slabToken,settings)
         if(!is.null(user)) {
@@ -132,10 +133,11 @@ slab_server <- function(server,settings,ui) {
           printVerbose(user)
           isAuthorised <- validateAuthorisation(user,settings)
           if(isAuthorised) {
-            status('IN')
+
 
             session$userData = user
             statusTxt(paste0(' as ', session$userData$profile$FullName))
+            status('IN')
           } else {
             status('UNAUTH')
 
@@ -180,6 +182,7 @@ slab_server <- function(server,settings,ui) {
               margin: auto;")
     })
 
+
     output$slabUserUi <- shiny::renderUI({
       # use req to only render results when credentials()$user_auth is TRUE
       printVerbose(paste("User UI render state",status(),sep = ":"))
@@ -187,7 +190,15 @@ slab_server <- function(server,settings,ui) {
       ui
     })
 
-    server(input, output, session)
+    shiny::observe({
+      state <- status()
+      if(state=="IN") {
+        printVerbose("logged in, render server")
+        server(input, output, session)
+      }
+    })
+
+
   }
 
 }

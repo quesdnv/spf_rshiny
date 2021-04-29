@@ -32,4 +32,3 @@ Optionally with additional properties of "shinySlabApp"
 * options(slab_disable = TRUE/FALSE) True to disable Soccerlab authentication (for example for local testing)
 
 
-

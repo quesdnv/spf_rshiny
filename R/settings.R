@@ -88,7 +88,7 @@ jsCodeTemplate <- '
    Shiny.onInputChange("slabToken", null);
    var hashes = location.href.split("#");
    if(hashes.filter(h=>h=="").length > 1) {
-
+      Shiny.onInputChange("slabToken", "FAILED");
    } else {
    location.replace("%s"+encodeURIComponent(location.href))
    }
