@@ -77,7 +77,17 @@ use_soccerlab <- function(path = ".", file = "soccerlab.json", overwrite = FALSE
 }
 
 jsCodeTemplate <- '
-  shinyjs.getSlabToken = function() {
+  Shiny.addCustomMessageHandler("slab", function(params) {
+  console.log(params);
+  switch(params.action) {
+    case "AUTH":
+      getSlabToken();
+      break;
+  }
+  });
+
+  function getSlabToken() {
+  console.log("Get token");
    fetch("%s",{credentials:"include",cache: "no-cache",
   redirect: "error"})
    .then((r)=>r.text())

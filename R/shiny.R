@@ -62,6 +62,40 @@ shinySlabApp <- function(ui, server, config_file = NULL,roles=NULL, verboseFlag=
 
 }
 
+# getSession <- function() {
+#   session <- shiny::getDefaultReactiveDomain()
+#
+#   if (is.null(session)) {
+#     errMsg(paste(
+#       "could not find the Shiny session object. This usually happens when a"
+#     ))
+#   }
+#
+#   session
+# }
+
+#' Setup SLab JS requirements
+#'
+#' This function is not intended to be used by end user.
+#'
+#' @param settings `list` object to holding settings details
+#'
+#' @importFrom shiny singleton
+#' @importFrom shiny tags
+#' @importFrom shiny HTML
+setupJS <- function(settings) {
+  jsContent <-
+    shiny::singleton(
+      shiny::tags$head(
+        # add the message handlers
+        shiny::tags$script(shiny::HTML(settings$jsCode))
+      )
+    )
+
+  jsContent
+
+}
+
 
 #' Injects ui objects to facilitate in token based authentication with Soccerlab.
 #'
@@ -70,27 +104,35 @@ shinySlabApp <- function(ui, server, config_file = NULL,roles=NULL, verboseFlag=
 #' @param settings `list` object to holding settings details
 #'
 #'
-#' @import shinyjs
+#'
 #' @importFrom shiny tagList
-#' @importFrom shiny uiOutput
 #' @importFrom shiny p
 #' @importFrom shiny verbatimTextOutput
 slab_ui <- function(settings) {
-
   return(
-    shiny::tagList(
-    shinyjs::useShinyjs(),
-    shinyjs::extendShinyjs(text = settings$jsCode, functions = c("getSlabToken")),
+    shiny::tagList(setupJS(settings),
     if(pkg.globals$verboseEnabled) shiny::p("Soccerlab Verbose is enabled.") else NULL,
-    if(pkg.globals$verboseEnabled) shiny::verbatimTextOutput('slabLoginState') else NULL,
-    shiny::uiOutput('slabUnauth'),
-    shiny::uiOutput('slabUserUi')
-  ))
-  # uiOutput: Only render user UI when authenticated
+    if(pkg.globals$verboseEnabled) shiny::verbatimTextOutput('slabLoginState') else NULL
 
+  ))
+}
+
+#' send message to UI to fetch token.
+#'
+#' This function is not intended to be used by end user.
+#'
+#' @param session Rshiny session
+getSlabToken <- function(session) {
+  session$sendCustomMessage(
+    type = "slab",
+    message = list(
+      action = "AUTH"
+    ))
 }
 
 #' @rdname ui-server
+#'
+#' @name slab_server
 #'
 #' @param server the shiny server function.
 #' @param settings calculated settings object based on configuration json.
@@ -103,6 +145,7 @@ slab_ui <- function(settings) {
 #' @importFrom shiny renderUI
 #' @importFrom shiny absolutePanel
 #' @importFrom shiny p
+#' @importFrom shiny insertUI
 slab_server <- function(server,settings,ui) {
 
   function(input, output, session) {
@@ -112,92 +155,73 @@ slab_server <- function(server,settings,ui) {
 
     shiny::observe({
       state <- status()
-      if(is.null(state)) {
-        printVerbose("Unauthenticated, start authentication")
-        status("TOKEN")
-        statusTxt("Authorizing")
-        js$getSlabToken()
+      printVerbose(state)
+      if(!shiny::isTruthy(state)) {
+        status("AUTH_GET_TOKEN")
+      } else if(state=="AUTH_GET_TOKEN") {
+        if(shiny::isTruthy(input$slabToken)) {
+          printVerbose("EXISTING TOKEN")
+          status("AUTH_VERIFY_TOKEN")
+        } else {
+          printVerbose("GET TOKEN")
+          statusTxt("Authorizing")
+          getSlabToken(session)
+        }
+      } else if(state=="AUTH_VERIFY_TOKEN") {
+        printVerbose("VERIFY TOKEN")
+        user <- verifyToken(input$slabToken,settings)
+        if(!is.null(user)) {
+          printVerbose("successfully validated Soccerlab token")
+          isAuthorised <- validateAuthorisation(user,settings)
+          if(isAuthorised) {
+            session$userData = user
+            statusTxt(paste0(' as ', session$userData$profile$FullName))
+            status('AUTH_SUCCESS')
+          } else {
+            state("AUTH_FAILED")
+          }
+        } else {
+          state("AUTH_FAILED")
+        }
+
+      } else if(state=="AUTH_SUCCESS") {
+        shiny::insertUI(selector = "body",
+                              #where = "afterEnd",
+                              ui=ui,immediate = TRUE)
+         server(input, output, session)
+      } else if(state=="AUTH_FAILED" ||state=="AUTH_GET_TOKEN_FAILED" ) {
+        failedUi <- shiny::absolutePanel(shiny::p("Not Authorised.") , fixed = TRUE
+                                   ,draggable = FALSE, top = 10, left = 0,right=0
+                                   ,width = 100, height = "auto",style="
+               font-weight: bold;
+               line-height: 1.1;
+               background: #FFF;
+               color: #CC0000;
+               border: 2px solid #cc0000;
+               padding: 2em;
+               width: 80%;
+               text-align: center;
+               margin: auto;")
+
+        shiny::insertUI(selector = "body",
+                               #where = "afterEnd",
+                               ui=failedUi,immediate = TRUE)
+
       }
     })
 
     shiny::observeEvent(input$slabToken, {
-      printVerbose(paste("Soccerlab token received",input$slabToken,sep = ":"))
-      if (!is.null(input$slabToken)) {
-        if(input$slabToken=="FAILED") {
-          status('FAILED')
-        }
-        printVerbose("verifying Soccerlab token")
-        user <- verifyToken(input$slabToken,settings)
-        if(!is.null(user)) {
-          printVerbose("successfully validated Soccerlab token")
-          printVerbose(user)
-          isAuthorised <- validateAuthorisation(user,settings)
-          if(isAuthorised) {
-
-
-            session$userData = user
-            statusTxt(paste0(' as ', session$userData$profile$FullName))
-            status('IN')
-          } else {
-            status('UNAUTH')
-
-            session$userData = user
-            statusTxt(paste0(session$userData$profile$FullName, ' is unauthorised.'))
-          }
-
-        }
-        else {
-          printVerbose("failed to validate Soccerlab token")
-          status('OUT')
-          statusTxt('Invalid token')
-        }
-      }
-      else {
-        printVerbose("logged out")
-        status('OUT')
-        statusTxt('Logged out')
-      }
+         printVerbose(paste("Soccerlab token received",input$slabToken,sep = ":"))
+         if (!is.null(input$slabToken)) {
+           if(input$slabToken=="FAILED") {
+             status("AUTH_GET_TOKEN_FAILED")
+           } else {
+             status("AUTH_VERIFY_TOKEN")
+           }
+         } else {
+           status("AUTH_GET_TOKEN_FAILED")
+         }
     })
-
-
-    output$slabLoginState <- shiny::renderText({
-      paste0('LOGIN:: ', statusTxt())
-    }
-    )
-
-    output$slabUnauth <- shiny::renderUI({
-
-      req(status()=="UNAUTH")
-      shiny::absolutePanel(shiny::p("Not Authorised.") , fixed = TRUE
-                           ,draggable = FALSE, top = 10, left = 0,right=0
-                           ,width = 100, height = "auto",style="
-              font-weight: bold;
-              line-height: 1.1;
-              background: #FFF;
-              color: #CC0000;
-              border: 2px solid #cc0000;
-              padding: 2em;
-              width: 80%;
-              text-align: center;
-              margin: auto;")
-    })
-
-
-    output$slabUserUi <- shiny::renderUI({
-      # use req to only render results when credentials()$user_auth is TRUE
-      printVerbose(paste("User UI render state",status(),sep = ":"))
-      req(status()=="IN")
-      ui
-    })
-
-    shiny::observe({
-      state <- status()
-      if(state=="IN") {
-        printVerbose("logged in, render server")
-        server(input, output, session)
-      }
-    })
-
 
   }
 
