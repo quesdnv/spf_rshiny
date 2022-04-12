@@ -112,9 +112,15 @@ slab_ui <- function(settings) {
   return(
     shiny::tagList(setupJS(settings),
     if(pkg.globals$verboseEnabled) shiny::p("Soccerlab Verbose is enabled.") else NULL,
-    if(pkg.globals$verboseEnabled) shiny::verbatimTextOutput('slabLoginState') else NULL
-
+    if(pkg.globals$verboseEnabled) shiny::verbatimTextOutput('slabLoginState') else NULL,
+    uiOutput("slabAuth")
   ))
+}
+
+slab_ui_success <- function(ui) {
+   return (shiny::tagList(ui,
+   tags$script('var evt = new CustomEvent("shinySlab:connected");
+    document.dispatchEvent(evt);')))
 }
 
 #' send message to UI to fetch token.
@@ -129,6 +135,16 @@ getSlabToken <- function(session) {
       action = "AUTH"
     ))
 }
+
+#' @param session Rshiny session
+signalOk <- function(session) {
+  session$sendCustomMessage(
+    type = "slab",
+    message = list(
+      action = "VALID"
+    ))
+}
+
 
 #' @rdname ui-server
 #'
@@ -185,9 +201,13 @@ slab_server <- function(server,settings,ui) {
         }
 
       } else if(state=="AUTH_SUCCESS") {
-        shiny::insertUI(selector = "body",
-                              #where = "afterEnd",
-                              ui=ui,immediate = TRUE)
+        print("Success, renderUI")
+        #shiny::insertUI(selector = "body",
+         #                     #where = "afterEnd",
+        #                      ui=ui,immediate = TRUE)
+        #uiExtra<-ui,
+         output$slabAuth <- renderUI(slab_ui_success(ui))
+         #signalOk(session)
          server(input, output, session)
       } else if(state=="AUTH_FAILED" ||state=="AUTH_GET_TOKEN_FAILED" ) {
         failedUi <- shiny::absolutePanel(shiny::p("Not Authorised.") , fixed = TRUE
@@ -203,9 +223,10 @@ slab_server <- function(server,settings,ui) {
                text-align: center;
                margin: auto;")
 
-        shiny::insertUI(selector = "body",
-                               #where = "afterEnd",
-                               ui=failedUi,immediate = TRUE)
+        output$slabAuth <- renderUI(failedUi)
+        #shiny::insertUI(selector = "body",
+        #                       #where = "afterEnd",
+        #                       ui=failedUi,immediate = TRUE)
 
       }
     })
