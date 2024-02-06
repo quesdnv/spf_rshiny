@@ -136,6 +136,20 @@ getSlabToken <- function(session) {
     ))
 }
 
+#' send message to UI to redirect
+#'
+#' This function is not intended to be used by end user.
+#'
+#' @param session Rshiny session
+sendRedir <- function(session,url) {
+  session$sendCustomMessage(
+    type = "slab",
+    message = list(
+      action = "REDIR",
+      url=url
+    ))
+}
+
 #' @param session Rshiny session
 signalOk <- function(session) {
   session$sendCustomMessage(
@@ -145,6 +159,9 @@ signalOk <- function(session) {
     ))
 }
 
+isTRUE <- function(x) {
+  is.logical(x) && length(x) == 1 && !is.na(x) && x
+}
 
 #' @rdname ui-server
 #'

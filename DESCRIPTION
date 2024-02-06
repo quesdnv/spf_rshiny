@@ -1,7 +1,7 @@
 Package: shinySlab
 Type: Package
 Title: Shiny Authentication with SoccerLab
-Version: 0.1.7
+Version: 0.1.9
 Author: Tim Govers
 Maintainer: Soccerlab <info@soccerlab.com>
 Description: Add Soccerlab authentication on top of Shiny Apps.

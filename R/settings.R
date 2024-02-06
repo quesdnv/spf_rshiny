@@ -78,7 +78,7 @@ use_soccerlab <- function(path = ".", file = "soccerlab.json", overwrite = FALSE
 
 jsCodeTemplate <- '
   Shiny.addCustomMessageHandler("slab", function(params) {
-  console.log(params);
+
   switch(params.action) {
     case "AUTH":
       getSlabToken();
@@ -87,23 +87,30 @@ jsCodeTemplate <- '
   });
 
   function getSlabToken() {
-  console.log("Get token");
-   fetch("%s",{credentials:"include",cache: "no-cache",
-  redirect: "error"})
-   .then((r)=>r.text())
-   .then((token)=>{
+    var currentUrl = new URL(location.href);
+    var callback = currentUrl.hash=="#callback";
+    var cbtoken = currentUrl.searchParams.get("code");
+    if(callback) {
+      if(cbtoken) {
+        currentUrl.hash="";
+        currentUrl.search="";
+        history.pushState({}, null, currentUrl.toString());
+        Shiny.onInputChange("slabToken", cbtoken);
+      } else {
+        Shiny.onInputChange("slabToken", "FAILED");
+      }
+    } else {
+      fetch("%s",{credentials:"include",cache: "no-cache",redirect: "error"})
+       .then((r)=>r.text())
+       .then((token)=>{
+         Shiny.onInputChange("slabToken", token);
+       }).catch((e)=> {
+        var uri = new URL("%s"+encodeURIComponent(location.href+"#callback"));
 
-    Shiny.onInputChange("slabToken", token);
-   }).catch((e)=>{
-   Shiny.onInputChange("slabToken", null);
-   var hashes = location.href.split("#");
-   if(hashes.filter(h=>h=="").length > 1) {
-      Shiny.onInputChange("slabToken", "FAILED");
-   } else {
-   location.replace("%s"+encodeURIComponent(location.href))
-   }
+        location.replace(uri.toString() + "?response_type=token")
+       })
+    }
 
-   })
   }
 '
 
