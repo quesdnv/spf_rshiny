@@ -59,5 +59,6 @@ server <- function(input, output,session) {
 }
 
 # Run the application
-shinySlab::shinySlabApp(ui = ui, server = server,roles=c("86d24bd7-3a5f-4f70-a864-c8d3560a1d02","08c397d4-b4ab-482e-b354-5a35606f3aee"))
+shinySlab::shinySlabApp(ui = ui, server = server)
+#shinyApp(ui = ui, server = server)
 #shinyApp

@@ -1,0 +1,13 @@
+name: TestTokenSelf
+title: TestTokenSelf
+username:
+account: soccerlab
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3310577
+bundleId: 3926837
+url: https://soccerlab.shinyapps.io/TestTokenSelf/
+when: 1606814063.41454
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: soccerlab.json
